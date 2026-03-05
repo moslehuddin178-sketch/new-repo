@@ -18,7 +18,14 @@ const UserSchema = new mongoose.Schema({
     },
     verifiedAt: {
         type: Date
-    }
+    },
+    phone: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    otpCode: String,
+    otpExpires: Date
 });
 
 module.exports = mongoose.model('User', UserSchema);

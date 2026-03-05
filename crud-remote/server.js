@@ -5,11 +5,13 @@ const userRouter = require("./routes/user");
 const app = express();
 const paymentRouter = require("./routes/Payment");
 const twofaRouter = require("./routes/2fa");
+const otpRouter = require("./routes/otp");
 const dotenv = require("dotenv");
 dotenv.config();
 
 app.use(express.json());
 app.use(paymentRouter);
+app.use(otpRouter);
 app.use(foodRouter);
 app.use(userRouter);
 app.use(twofaRouter);

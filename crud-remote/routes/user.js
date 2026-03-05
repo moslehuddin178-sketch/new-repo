@@ -7,15 +7,21 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendVerificationEmail } = require('../utils/emailSender');
 const authenticator = require('otplib').authenticator;
+const sendSMS = require('../utils/smsHelper');
 // const timeMiddleware = require('../middleware/time');
 
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 // Change app.post to router.post
 router.post('/register', async (req, res) => {
       const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
      
      console.log('Validation passed, proceeding with registration...', !errors.isEmpty()); // Debugging log
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, phone } = req.body;
+
+
 
     try {
       console.log('Checking if user already exists with email:', email); // Debugging log
@@ -29,12 +35,22 @@ router.post('/register', async (req, res) => {
       console.log('Received registration request with body:', req.body), // Debugging log
       console.log('Hashed Password:', hashedPassword); // Debugging log
       
-      const user = new User({ username, email, password: hashedPassword, role, verificationToken: token });
+      const otp = generateOTP();
+      console.log('Generated OTP:', otp); // Debugging log
+
+      const user = new User({ username, email, password: hashedPassword, role, phone, otpCode: otp, otpExpires: new Date(Date.now() + 10 * 60 * 1000), verificationToken: token });
 
     // await sendVerificationEmail(email, token);
      await user.save();
 
-      res.status(201).json({ message: 'User registered successfully' });
+     await sendSMS(phone, otp); // Replace with user's phone number
+      console.log('OTP sent via SMS'); // Debugging log
+
+         res.json({
+      message: "OTP sent to your phone. Please verify to complete registration.",
+      otp: otp   // only for testing
+    });
+
     } catch (err) {
       res.status(500).json({ message: 'Error registering user', error: err.message });
     }
